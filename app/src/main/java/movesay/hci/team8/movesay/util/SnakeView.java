@@ -53,7 +53,6 @@ public class SnakeView extends TileView {
      * Current direction the snake is headed.
      */
     private int mDirection = NORTH;
-    private int mNextDirection = NORTH;
     private static final int NORTH = 1;
     private static final int SOUTH = 2;
     private static final int EAST = 3;
@@ -89,7 +88,7 @@ public class SnakeView extends TileView {
      * mAppleList: the secret location of the juicy apples the snake craves.
      */
     //private ArrayList<Coordinate> mSnakeTrail = new ArrayList<Coordinate>();
-	 private Coordinate character;
+	 private Coordinate character  = new Coordinate(0, 0);
     private ArrayList<Coordinate> mAppleList = new ArrayList<Coordinate>();
 
     /**
@@ -150,7 +149,7 @@ public class SnakeView extends TileView {
 
         
         character = new Coordinate(15, 15);
-        mNextDirection = NORTH;
+        mDirection = NORTH;
 
         // Two apples to start with
         addRandomApple();
@@ -177,7 +176,6 @@ public class SnakeView extends TileView {
 
         map.putIntArray("mAppleList", coordArrayListToArray(mAppleList));
         map.putInt("mDirection", mDirection);
-        map.putInt("mNextDirection", mNextDirection);
         map.putLong("mMoveDelay", mMoveDelay);
         map.putLong("mScore", mScore);
         map.putInt("characterX", character.x);
@@ -207,7 +205,6 @@ public class SnakeView extends TileView {
 
         mAppleList = coordArrayToArrayList(icicle.getIntArray("mAppleList"));
         mDirection = icicle.getInt("mDirection");
-        mNextDirection = icicle.getInt("mNextDirection");
         mMoveDelay = icicle.getLong("mMoveDelay");
         mScore = icicle.getLong("mScore");
         character.x = icicle.getInt("characterX");
@@ -217,14 +214,14 @@ public class SnakeView extends TileView {
 	public void recognizeDirection(String command) {
 		Log.d("SnakeView", command);
 		//Log.d("SnakeView", command.equals("start") ? "recognized start" : "did not recognize start");
-			if(command.equals("up")) {
-			if(mDirection != SOUTH) {mNextDirection = NORTH;}
+		if(command.equals("up")) {
+			mDirection = NORTH;
 		} else if(command.equals("down")) {
-			if(mDirection != NORTH) {mNextDirection = SOUTH;}
+			mDirection = SOUTH;
 		} else if(command.equals("right")) {
-			if(mDirection != WEST) {mNextDirection = EAST;}
+			mDirection = EAST;
 		} else if(command.equals("left")) {
-			if(mDirection != EAST) {mNextDirection = WEST;}
+			mDirection = WEST;
 		} else if(command.equals("start")) {
 			if (mMode == READY | mMode == LOSE) {
 				initNewGame();
@@ -321,7 +318,6 @@ public class SnakeView extends TileView {
             }
             mRedrawHandler.sleep(mMoveDelay);
         }
-
     }
 
     /**
@@ -345,7 +341,7 @@ public class SnakeView extends TileView {
      */
     private void updateApples() {
         for (Coordinate c : mAppleList) {
-            setTile(YELLOW_STAR, c.x, c.y);
+            setTile(RED_STAR, c.x, c.y);
         }
     }
 
@@ -357,33 +353,29 @@ public class SnakeView extends TileView {
      * 
      */
     private void updateSnake() {
-        Coordinate newHead = new Coordinate(1, 1);
-
-        mDirection = mNextDirection;
-
         switch (mDirection) {
         case EAST: {
-            newHead = new Coordinate(character.x + 1, character.y);
+			  character = new Coordinate(character.x + 1, character.y);
             break;
         }
         case WEST: {
-            newHead = new Coordinate(character.x - 1, character.y);
+			  character = new Coordinate(character.x - 1, character.y);
             break;
         }
         case NORTH: {
-            newHead = new Coordinate(character.x, character.y - 1);
+			  character = new Coordinate(character.x, character.y - 1);
             break;
         }
         case SOUTH: {
-            newHead = new Coordinate(character.x, character.y + 1);
+			  character = new Coordinate(character.x, character.y + 1);
             break;
         }
         }
 
         // Collision detection
         // For now we have a 1-square wall around the entire arena
-        if ((newHead.x < 1) || (newHead.y < 1) || (newHead.x > mXTileCount - 2)
-                || (newHead.y > mYTileCount - 2)) {
+        if ((character.x < 1) || (character.y < 1) || (character.x > mXTileCount - 2)
+				|| (character.y > mYTileCount - 2)) {
             setMode(LOSE);
             return;
 
@@ -403,7 +395,7 @@ public class SnakeView extends TileView {
         int applecount = mAppleList.size();
         for (int appleindex = 0; appleindex < applecount; appleindex++) {
             Coordinate c = mAppleList.get(appleindex);
-            if (c.equals(newHead)) {
+            if (c.equals(character)) {
                 mAppleList.remove(c);
                 addRandomApple();
                 
@@ -411,9 +403,6 @@ public class SnakeView extends TileView {
                 mMoveDelay *= 0.9;
             }
         }
-
-        // push a new head onto the ArrayList and pull off the tail
-        character = newHead;
 
 		 setTile(YELLOW_STAR, character.x, character.y);
         /*int index = 0;

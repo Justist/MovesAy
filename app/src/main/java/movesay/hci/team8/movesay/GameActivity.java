@@ -9,6 +9,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,6 +75,9 @@ public class GameActivity extends Activity {
 		return true;
 	}
 
+	/*
+	 * For debugging purposes.
+	 */
 	public void showToastMessage(String message){
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
@@ -124,6 +128,7 @@ public class GameActivity extends Activity {
 			String firstLetter = String.valueOf(original.charAt(0));
 			if(firstLetter.equals("u")) {result = "up";}
 			else if(firstLetter.equals("d")) {result = "down";}
+			else if(firstLetter.equals("t")) {result = "down";}
 			else if(firstLetter.equals("r")) {result = "right";}
 			else if(firstLetter.equals("l")) {result = "left";}
 			else if(firstLetter.equals("s")) {result = "start";}
@@ -138,7 +143,8 @@ public class GameActivity extends Activity {
 			ArrayList<String> textMatchList = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 			if (!textMatchList.isEmpty()) {
 				recognizeSpeech(textMatchList.get(0));
-				//showToastMessage(textMatchList.get(0).toLowerCase());
+				//showToastMessage(Integer.toString(Integer.parseInt(textMatchList.get(0))));
+				Log.d("NumberRecognition", textMatchList.get(0));
 			}
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}

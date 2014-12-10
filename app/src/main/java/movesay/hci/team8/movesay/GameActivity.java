@@ -113,11 +113,31 @@ public class GameActivity extends Activity {
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}
 
+		/*
+		 * This function will try to recognize what is said as good as possible.
+		 * Therefore the starting letter of the recognized word will be used to
+		 * determine which command was said. As all command have another starting
+		 * letter, this will work nicely.
+		 */
+		private void recognizeSpeech(String original) {
+			String result = "";
+			String firstLetter = String.valueOf(original.charAt(0));
+			if(firstLetter.equals("u")) {result = "up";}
+			else if(firstLetter.equals("d")) {result = "down";}
+			else if(firstLetter.equals("r")) {result = "right";}
+			else if(firstLetter.equals("l")) {result = "left";}
+			else if(firstLetter.equals("s")) {result = "start";}
+			else if(firstLetter.equals("p")) {result = "pause";}
+			else if(firstLetter.equals("b")) {result = "pause";}
+
+			mSnakeView.recognizeDirection(result);
+		}
+
 		@Override
 		public void onResults(Bundle results) {
 			ArrayList<String> textMatchList = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 			if (!textMatchList.isEmpty()) {
-				mSnakeView.recognizeDirection(textMatchList.get(0).toLowerCase());
+				recognizeSpeech(textMatchList.get(0));
 				//showToastMessage(textMatchList.get(0).toLowerCase());
 			}
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);

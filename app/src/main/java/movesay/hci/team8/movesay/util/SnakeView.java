@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -87,7 +88,8 @@ public class SnakeView extends TileView {
      * mSnakeTrail: a list of Coordinates that make up the snake's body
      * mAppleList: the secret location of the juicy apples the snake craves.
      */
-    private ArrayList<Coordinate> mSnakeTrail = new ArrayList<Coordinate>();
+    //private ArrayList<Coordinate> mSnakeTrail = new ArrayList<Coordinate>();
+	 private Coordinate character;
     private ArrayList<Coordinate> mAppleList = new ArrayList<Coordinate>();
 
     /**
@@ -140,19 +142,14 @@ public class SnakeView extends TileView {
     
 
     private void initNewGame() {
-        mSnakeTrail.clear();
+        //mSnakeTrail.clear();
         mAppleList.clear();
 
         // For now we're just going to load up a short default eastbound snake
         // that's just turned north
 
         
-        mSnakeTrail.add(new Coordinate(7, 7));
-        mSnakeTrail.add(new Coordinate(6, 7));
-        mSnakeTrail.add(new Coordinate(5, 7));
-        mSnakeTrail.add(new Coordinate(4, 7));
-        mSnakeTrail.add(new Coordinate(3, 7));
-        mSnakeTrail.add(new Coordinate(2, 7));
+        character = new Coordinate(15, 15);
         mNextDirection = NORTH;
 
         // Two apples to start with
@@ -183,7 +180,8 @@ public class SnakeView extends TileView {
         map.putInt("mNextDirection", mNextDirection);
         map.putLong("mMoveDelay", mMoveDelay);
         map.putLong("mScore", mScore);
-        map.putIntArray("mSnakeTrail", coordArrayListToArray(mSnakeTrail));
+        map.putInt("characterX", character.x);
+		  map.putInt("characterY", character.y);
 
         return map;
     }
@@ -212,13 +210,14 @@ public class SnakeView extends TileView {
         mNextDirection = icicle.getInt("mNextDirection");
         mMoveDelay = icicle.getLong("mMoveDelay");
         mScore = icicle.getLong("mScore");
-        mSnakeTrail = coordArrayToArrayList(icicle.getIntArray("mSnakeTrail"));
+        character.x = icicle.getInt("characterX");
+		  character.y = icicle.getInt("characterY");
     }
 
 	public void recognizeDirection(String command) {
-		//Log.d("SnakeView", command);
+		Log.d("SnakeView", command);
 		//Log.d("SnakeView", command.equals("start") ? "recognized start" : "did not recognize start");
-		if(command.equals("up")) {
+			if(command.equals("up")) {
 			if(mDirection != SOUTH) {mNextDirection = NORTH;}
 		} else if(command.equals("down")) {
 			if(mDirection != NORTH) {mNextDirection = SOUTH;}
@@ -289,12 +288,13 @@ public class SnakeView extends TileView {
 
             // Make sure it's not already under the snake
             boolean collision = false;
-            int snakelength = mSnakeTrail.size();
+            /*int snakelength = mSnakeTrail.size();
             for (int index = 0; index < snakelength; index++) {
                 if (mSnakeTrail.get(index).equals(newCoord)) {
                     collision = true;
                 }
-            }
+            }*/
+				if(character.equals(newCoord)) collision = true;
             // if we're here and there's been no collision, then we have
             // a good location for an apple. Otherwise, we'll circle back
             // and try again
@@ -357,29 +357,25 @@ public class SnakeView extends TileView {
      * 
      */
     private void updateSnake() {
-        boolean growSnake = false;
-
-        // grab the snake by the head
-        Coordinate head = mSnakeTrail.get(0);
         Coordinate newHead = new Coordinate(1, 1);
 
         mDirection = mNextDirection;
 
         switch (mDirection) {
         case EAST: {
-            newHead = new Coordinate(head.x + 1, head.y);
+            newHead = new Coordinate(character.x + 1, character.y);
             break;
         }
         case WEST: {
-            newHead = new Coordinate(head.x - 1, head.y);
+            newHead = new Coordinate(character.x - 1, character.y);
             break;
         }
         case NORTH: {
-            newHead = new Coordinate(head.x, head.y - 1);
+            newHead = new Coordinate(character.x, character.y - 1);
             break;
         }
         case SOUTH: {
-            newHead = new Coordinate(head.x, head.y + 1);
+            newHead = new Coordinate(character.x, character.y + 1);
             break;
         }
         }
@@ -393,7 +389,7 @@ public class SnakeView extends TileView {
 
         }
 
-        // Look for collisions with itself
+        /*// Look for collisions with itself
         int snakelength = mSnakeTrail.size();
         for (int snakeindex = 0; snakeindex < snakelength; snakeindex++) {
             Coordinate c = mSnakeTrail.get(snakeindex);
@@ -401,7 +397,7 @@ public class SnakeView extends TileView {
                 setMode(LOSE);
                 return;
             }
-        }
+        }*/
 
         // Look for apples
         int applecount = mAppleList.size();
@@ -413,19 +409,14 @@ public class SnakeView extends TileView {
                 
                 mScore++;
                 mMoveDelay *= 0.9;
-
-                growSnake = true;
             }
         }
 
         // push a new head onto the ArrayList and pull off the tail
-        mSnakeTrail.add(0, newHead);
-        // except if we want the snake to grow
-        if (!growSnake) {
-            mSnakeTrail.remove(mSnakeTrail.size() - 1);
-        }
+        character = newHead;
 
-        int index = 0;
+		 setTile(YELLOW_STAR, character.x, character.y);
+        /*int index = 0;
         for (Coordinate c : mSnakeTrail) {
             if (index == 0) {
                 setTile(YELLOW_STAR, c.x, c.y);
@@ -433,7 +424,7 @@ public class SnakeView extends TileView {
                 setTile(RED_STAR, c.x, c.y);
             }
             index++;
-        }
+        }*/
 
     }
 

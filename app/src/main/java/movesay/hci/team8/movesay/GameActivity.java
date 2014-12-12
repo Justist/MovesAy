@@ -16,40 +16,37 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import movesay.hci.team8.movesay.util.SnakeView;
+import movesay.hci.team8.movesay.util.CharacterView;
 
 
 public class GameActivity extends Activity {
-	public TextView textMatch;
 
 	private SpeechRecognizer mSpeechRecognizer;
 	private Intent mSpeechRecognizerIntent;
 
-	private SnakeView mSnakeView;
-	private static String ICICLE_KEY = "snakeview";
+	private CharacterView mCharacterView;
+	private static String ICICLE_KEY = "CharacterView";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.snake_layout);
+		setContentView(R.layout.character_layout);
 		//setContentView(R.layout.activity_game);
 
-		textMatch = (TextView) findViewById(R.id.result);
-
-		mSnakeView = (SnakeView) findViewById(R.id.snake);
-		mSnakeView.setTextView((TextView) findViewById(R.id.text));
+		mCharacterView = (CharacterView) findViewById(R.id.character);
+		mCharacterView.setTextView((TextView) findViewById(R.id.text));
 
 		if (savedInstanceState == null) {
 			// We were just launched -- set up a new game
-			mSnakeView.setMode(SnakeView.READY);
+			mCharacterView.setMode(CharacterView.READY);
 		} else {
 			// We are being restored
 			Bundle map = savedInstanceState.getBundle(ICICLE_KEY);
 			if (map != null) {
-				mSnakeView.restoreState(map);
+				mCharacterView.restoreState(map);
 			} else {
-				mSnakeView.setMode(SnakeView.PAUSE);
+				mCharacterView.setMode(CharacterView.PAUSE);
 			}
 		}
 
@@ -63,7 +60,7 @@ public class GameActivity extends Activity {
 		if(checkVoiceRecognition()) {mSpeechRecognizer.startListening(mSpeechRecognizerIntent);}
     }
 
-	public boolean checkVoiceRecognition() {
+	boolean checkVoiceRecognition() {
 		// Check if voice recognition is present
 		PackageManager pm = getPackageManager();
 		List<ResolveInfo> activities = pm.queryIntentActivities(new Intent(
@@ -86,16 +83,19 @@ public class GameActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		// Pause the game along with the activity
-		mSnakeView.setMode(SnakeView.PAUSE);
+		mCharacterView.setMode(CharacterView.PAUSE);
+		mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 	}
 
 	@Override
 	public void onSaveInstanceState(@NonNull Bundle outState) {
 		//Store the game state
-		outState.putBundle(ICICLE_KEY, mSnakeView.saveState());
+		outState.putBundle(ICICLE_KEY, mCharacterView.saveState());
 	}
 
-	protected class SpeechRecognitionListener implements RecognitionListener {
+	class SpeechRecognitionListener implements RecognitionListener {
+		private boolean lastCommandWasWalk = false;
+
 		@Override
 		public void onReadyForSpeech(Bundle params) {}
 
@@ -113,7 +113,7 @@ public class GameActivity extends Activity {
 
 		@Override
 		public void onError(int error) {
-			//textMatch.setText("Nope, I did not get that...");
+			Log.d("GameActivity", "Error!");
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}
 
@@ -124,18 +124,28 @@ public class GameActivity extends Activity {
 		 * letter, this will work nicely.
 		 */
 		private void recognizeSpeech(String original) {
+			Log.d("GameActivity", original);
 			String result = "";
-			String firstLetter = String.valueOf(original.charAt(0));
-			if(firstLetter.equals("u")) {result = "up";}
-			else if(firstLetter.equals("d")) {result = "down";}
-			else if(firstLetter.equals("t")) {result = "down";}
-			else if(firstLetter.equals("r")) {result = "right";}
-			else if(firstLetter.equals("l")) {result = "left";}
-			else if(firstLetter.equals("s")) {result = "start";}
-			else if(firstLetter.equals("p")) {result = "pause";}
-			else if(firstLetter.equals("b")) {result = "pause";}
+			if(lastCommandWasWalk) {
+				result = "N" + original;
+				lastCommandWasWalk = false;
+			} else {
+				String firstLetter = String.valueOf(original.charAt(0));
+				if(firstLetter.equals("u")) {result = "up";}
+				else if(firstLetter.equals("d")) {result = "down";}
+				else if(firstLetter.equals("t")) {result = "down";}
+				else if(firstLetter.equals("r")) {result = "right";}
+				else if(firstLetter.equals("l")) {result = "left";}
+				else if(firstLetter.equals("s")) {result = "start";}
+				else if(firstLetter.equals("p")) {result = "pause";}
+				else if(firstLetter.equals("b")) {result = "pause";}
+				else if(firstLetter.equals("w")) {
+					result = "walk";
+					lastCommandWasWalk = true;
+				}
+			}
 
-			mSnakeView.recognizeDirection(result);
+			mCharacterView.recognizeDirection(result);
 		}
 
 		@Override
@@ -143,17 +153,22 @@ public class GameActivity extends Activity {
 			ArrayList<String> textMatchList = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 			if (!textMatchList.isEmpty()) {
 				recognizeSpeech(textMatchList.get(0));
-				//showToastMessage(Integer.toString(Integer.parseInt(textMatchList.get(0))));
-				Log.d("NumberRecognition", textMatchList.get(0));
+				//Log.d("match", textMatchList.get(0));
 			}
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}
 
 		@Override
-		public void onPartialResults(Bundle partialResults) {}
+		public void onPartialResults(Bundle partialResults) {
+			Log.d("partial", "Hi mom!");
+			//mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
+		}
 
 		@Override
-		public void onEvent(int eventType, Bundle params) {}
+		public void onEvent(int eventType, Bundle params) {
+			Log.d("event", String.valueOf(eventType));
+			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
+		}
 	}
 
 	@Override

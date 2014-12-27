@@ -47,7 +47,7 @@ public class CharacterView extends TileView {
     public static final int PAUSE = 0;
     public static final int READY = 1;
     private static final int RUNNING = 2;
-    private static final int LOSE = 3;
+    private static final int OVER = 3;
 
 	public static enum Sprites {
 		RED_STAR(1), GREEN_STAR(2), ARROW_UP(3), ARROW_DOWN(4), ARROW_LEFT(5), ARROW_RIGHT(6);
@@ -123,8 +123,6 @@ public class CharacterView extends TileView {
 
 	private void initCharacterView() {
 		setFocusable(true);
-
-		Resources r = this.getContext().getResources();
 
 		resetTiles(Sprites.values().length + 1);
 		loadTile(Sprites.RED_STAR, R.drawable.redstar);
@@ -205,8 +203,8 @@ public class CharacterView extends TileView {
 		  character.y = icicle.getInt("characterY");
     }
 
-	public void recognizeDirection(String command) {
-		if(command.isEmpty()) {return;}
+	public boolean recognizeDirection(String command) {
+		if(command.isEmpty()) {return false;}
 		if(command.equals("up")) {
 			mDirection = Sprites.ARROW_UP.getValue();
 			setTile(mDirection, character.x, character.y);
@@ -220,7 +218,7 @@ public class CharacterView extends TileView {
 			mDirection = Sprites.ARROW_LEFT.getValue();
 			setTile(mDirection, character.x, character.y);
 		} else if(command.equals("start")) {
-			if (mMode == READY | mMode == LOSE) {
+			if (mMode == READY | mMode == OVER) {
 				initNewGame();
 				setMode(RUNNING);
 				update();
@@ -231,9 +229,24 @@ public class CharacterView extends TileView {
 		} else if(command.equals("pause")) {
 			if(mMode == RUNNING) setMode(PAUSE);
 		} else if(String.valueOf(command.charAt(0)).equals("N")) {
-			try{stepsToWalk = Integer.parseInt(command.substring(1, command.length()));}
-			catch(NumberFormatException n) {Log.d(TAG, String.valueOf(n));}
+			try {stepsToWalk = Integer.parseInt(command.substring(1, command.length()));} catch(NumberFormatException n) {
+				Log.d(TAG, String.valueOf(n));
+				return false;
+			}
+		} else if(command.equals("quit")) {
+			quitView();
+		} else {
+			return false;
 		}
+		return true;
+	}
+
+	public void quitView() {
+		mGoalList.clear();
+		character = null;
+		stepsToWalk = 0;
+		setMode(OVER);
+		// Possibility to write mScore to a file.
 	}
 
     public void setTextView(TextView newView) {
@@ -253,14 +266,13 @@ public class CharacterView extends TileView {
         Resources res = getContext().getResources();
         CharSequence str = "";
         if (newMode == PAUSE) {
-            str = res.getText(R.string.mode_pause);
+            str = res.getString(R.string.mode_pause_pre) + mScore + res.getString(R.string.mode_pause_suf);
         }
         if (newMode == READY) {
-            str = res.getText(R.string.mode_ready);
+            str = res.getString(R.string.mode_ready);
         }
-        if (newMode == LOSE) {
-            str = res.getString(R.string.mode_lose_prefix) + mScore
-                  + res.getString(R.string.mode_lose_suffix);
+        if (newMode == OVER) {
+            str = res.getString(R.string.mode_over_pre) + mScore + res.getString(R.string.mode_over_suf);
         }
 
         mStatusText.setText(str);

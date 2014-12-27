@@ -32,7 +32,6 @@ public class GameActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.character_layout);
-		//setContentView(R.layout.activity_game);
 
 		mCharacterView = (CharacterView) findViewById(R.id.character);
 		mCharacterView.setTextView((TextView) findViewById(R.id.text));
@@ -73,7 +72,7 @@ public class GameActivity extends Activity {
 	}
 
 	/*
-	 * For debugging purposes.
+	 * For giving feedback to a user.
 	 */
 	public void showToastMessage(String message){
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
@@ -123,12 +122,12 @@ public class GameActivity extends Activity {
 		 * determine which command was said. As all command have another starting
 		 * letter, this will work nicely.
 		 */
-		private void recognizeSpeech(String original) {
+		private boolean recognizeSpeech(String original) {
 			Log.d("GameActivity", original);
 			String result = "";
 			if(lastCommandWasWalk) {
 				result = "N" + original;
-				lastCommandWasWalk = false;
+				if(mCharacterView.recognizeDirection(result)) {lastCommandWasWalk = false;}
 			} else {
 				String firstLetter = String.valueOf(original.charAt(0));
 				if(firstLetter.equals("u")) {result = "up";}
@@ -143,17 +142,21 @@ public class GameActivity extends Activity {
 					result = "walk";
 					lastCommandWasWalk = true;
 				}
+				else if(firstLetter.equals("q")) {result = "quit";}
+				mCharacterView.recognizeDirection(result);
 			}
-
-			mCharacterView.recognizeDirection(result);
+			if(result.equals("quit")) {quit(); return false;}
+			return true;
 		}
 
 		@Override
 		public void onResults(Bundle results) {
+			String result;
 			ArrayList<String> textMatchList = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 			if (!textMatchList.isEmpty()) {
-				recognizeSpeech(textMatchList.get(0));
-				//Log.d("match", textMatchList.get(0));
+				result = textMatchList.get(0);
+				if(!recognizeSpeech(result)) {return;}
+				showToastMessage(result);
 			}
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}
@@ -169,6 +172,14 @@ public class GameActivity extends Activity {
 			Log.d("event", String.valueOf(eventType));
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}
+	}
+
+	// Welll, it quits. Maybe somewhat less errory would be nice though.
+	public void quit() {
+		mSpeechRecognizerIntent = null;
+		mSpeechRecognizer.destroy();
+		mCharacterView = null;
+		finish();
 	}
 
 	@Override

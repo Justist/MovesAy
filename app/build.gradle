@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 14
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         applicationId "movesay.hci.team8.movesay"
         minSdkVersion 14
-        targetSdkVersion 21
+        targetSdkVersion 14
         versionCode 1
         versionName "1.0"
     }
@@ -25,5 +25,5 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:support-v4:21.0.2'
+    compile 'com.android.support:support-v4:21.0.3'
 }

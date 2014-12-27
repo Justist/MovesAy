@@ -17,11 +17,12 @@
 package movesay.hci.team8.movesay.util;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -41,10 +42,12 @@ public class TileView extends View {
      * dimensions. X/Y Tile Counts are the number of tiles that will be drawn.
      */
 
-    protected static int mTileSize;
+	 String TAG = "TileView";
 
-    protected static int mXTileCount;
-    protected static int mYTileCount;
+    private static int mTileSize;
+
+    static int mXTileCount;
+    static int mYTileCount;
 
     private static int mXOffset;
     private static int mYOffset;
@@ -84,7 +87,7 @@ public class TileView extends View {
         a.recycle();
     }
     
-    public void resetTiles(int tilecount) {
+    void resetTiles(int tilecount) {
     	mTileArray = new Bitmap[tilecount];
     }
 
@@ -101,20 +104,19 @@ public class TileView extends View {
         clearTiles();
     }
 
-    public void loadTile(int key, Drawable tile) {
-        Bitmap bitmap = Bitmap.createBitmap(mTileSize, mTileSize, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        tile.setBounds(0, 0, mTileSize, mTileSize);
-        tile.draw(canvas);
-        
-        mTileArray[key] = bitmap;
-    }
+	void loadTile(CharacterView.Sprites key, int tile) {
+		Resources r = this.getContext().getResources();
+		Bitmap bitmap = BitmapFactory.decodeResource(r, tile);
+		bitmap = Bitmap.createScaledBitmap(bitmap, mTileSize, mTileSize, false);
+		mTileArray[key.getValue()] = bitmap;
+		//Log.d(TAG + " loadTile", String.valueOf(key.getValue()));
+	}
 
     /**
      * Resets all tiles to 0 (empty)
      * 
      */
-    public void clearTiles() {
+	 void clearTiles() {
         for (int x = 0; x < mXTileCount; x++) {
             for (int y = 0; y < mYTileCount; y++) {
                 setTile(0, x, y);
@@ -122,25 +124,22 @@ public class TileView extends View {
         }
     }
 
-    public void setTile(int tileindex, int x, int y) {
-        mTileGrid[x][y] = tileindex;
+    void setTile(int tileindex, int x, int y) {
+		 //Log.d(TAG + " setTile", String.valueOf(tileindex));
+		 mTileGrid[x][y] = tileindex;
     }
 
 
-    @Override
-    public void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        for (int x = 0; x < mXTileCount; x += 1) {
-            for (int y = 0; y < mYTileCount; y += 1) {
-                if (mTileGrid[x][y] > 0) {
-                    canvas.drawBitmap(mTileArray[mTileGrid[x][y]], 
-                    		mXOffset + x * mTileSize,
-                    		mYOffset + y * mTileSize,
-                    		mPaint);
-                }
-            }
-        }
-
-    }
+	@Override
+	public void onDraw(Canvas canvas) {
+		super.onDraw(canvas);
+		for (int x = 0; x < mXTileCount; x += 1) {
+			for (int y = 0; y < mYTileCount; y += 1) {
+				if (mTileGrid[x][y] > 0) {
+					canvas.drawBitmap(mTileArray[mTileGrid[x][y]], mXOffset + x * mTileSize, mYOffset + y * mTileSize,mPaint);
+				}
+			}
+		}
+	}
 
 }

@@ -4,9 +4,10 @@
     <string name="app_name">MovesAy</string>
 
     <string name="mode_ready">MovesAy\nSay Start To Play</string>
-    <string name="mode_pause">Paused\nSay Start To Resume</string>
-    <string name="mode_lose_prefix">Game Over\nScore: </string>
-    <string name="mode_lose_suffix">\nSay Start To Play</string>
+    <string name="mode_pause_pre">Paused\nYour current score is: </string>
+    <string name="mode_pause_suf">\nSay Start To Resume</string>
+    <string name="mode_over_pre">Game Over\nScore: </string>
+    <string name="mode_over_suf">\nSay Start To Play</string>
 
     <string name="snake_layout_text_text"/>
 

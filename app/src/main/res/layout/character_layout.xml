@@ -18,8 +18,8 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 	
-	<movesay.hci.team8.movesay.util.SnakeView
-	 android:id="@+id/snake"
+	<movesay.hci.team8.movesay.util.CharacterView
+	 android:id="@+id/character"
 		android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tileSize="24"

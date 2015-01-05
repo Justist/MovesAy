@@ -51,7 +51,7 @@ public class CharacterView extends TileView {
 
 	public static enum Sprites {
 		RED_STAR(1), GREEN_STAR(2), ARROW_UP(3), ARROW_DOWN(4), ARROW_LEFT(5), ARROW_RIGHT(6);
-	 	private int sprite;
+	 	private final int sprite;
 		private Sprites(int s) {sprite = s;}
 		public int getValue() {return sprite;}
 	}
@@ -95,7 +95,7 @@ public class CharacterView extends TileView {
      * set ourselves as a target and we can use the sleep()
      * function to cause an update/invalidate to occur at a later date.
      */
-    private RefreshHandler mRedrawHandler = new RefreshHandler();
+    private final RefreshHandler mRedrawHandler = new RefreshHandler();
 
     class RefreshHandler extends Handler {
 
@@ -151,6 +151,10 @@ public class CharacterView extends TileView {
         mScore = 0;
     }
 
+	public boolean setWalkAndSayNumber(boolean bool) {
+		boolean walkAndSayNumber = bool;
+		return bool;
+	}
 
     private int[] coordArrayListToArray(ArrayList<Coordinate> cvec) {
         int count = cvec.size();
@@ -235,13 +239,15 @@ public class CharacterView extends TileView {
 			}
 		} else if(command.equals("quit")) {
 			quitView();
+		} else if(command.equals("preferences")) {
+
 		} else {
 			return false;
 		}
 		return true;
 	}
 
-	public void quitView() {
+	void quitView() {
 		mGoalList.clear();
 		character = null;
 		stepsToWalk = 0;

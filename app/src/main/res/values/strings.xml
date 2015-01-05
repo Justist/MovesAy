@@ -8,6 +8,9 @@
     <string name="mode_pause_suf">\nSay Start To Resume</string>
     <string name="mode_over_pre">Game Over\nScore: </string>
     <string name="mode_over_suf">\nSay Start To Play</string>
+    <string name="controlChoice">Select controls</string>
+    <string name="controlChoice1">Say walk and number</string>
+    <string name="controlChoice2">Say direction</string>
 
     <string name="snake_layout_text_text"/>
 

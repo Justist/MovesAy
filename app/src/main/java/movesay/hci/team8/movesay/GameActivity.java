@@ -10,6 +10,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,7 +26,7 @@ public class GameActivity extends Activity {
 	private Intent mSpeechRecognizerIntent;
 
 	private CharacterView mCharacterView;
-	private static String ICICLE_KEY = "CharacterView";
+	private static final String ICICLE_KEY = "CharacterView";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,10 +72,32 @@ public class GameActivity extends Activity {
 		return true;
 	}
 
+	/*public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if(keyCode == KeyEvent.KEYCODE_MENU) {
+			showPopUp();
+			return true;
+		}
+		return super.onKeyUp(keyCode, event);
+	}*/
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+			case R.id.controlChoice1:
+				boolean walkAndSayNumber = mCharacterView.setWalkAndSayNumber(true);
+				return true;
+			case R.id.controlChoice2:
+				walkAndSayNumber = mCharacterView.setWalkAndSayNumber(false);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
 	/*
 	 * For giving feedback to a user.
 	 */
-	public void showToastMessage(String message){
+	void showToastMessage(String message){
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
@@ -136,7 +159,10 @@ public class GameActivity extends Activity {
 				else if(firstLetter.equals("r")) {result = "right";}
 				else if(firstLetter.equals("l")) {result = "left";}
 				else if(firstLetter.equals("s")) {result = "start";}
-				else if(firstLetter.equals("p")) {result = "pause";}
+				else if(firstLetter.equals("p")) {
+					if(String.valueOf(original.charAt(1)).equals("r")) {result = "preferences";}
+					else {result = "pause";}
+				}
 				else if(firstLetter.equals("b")) {result = "pause";}
 				else if(firstLetter.equals("w")) {
 					result = "walk";
@@ -175,7 +201,7 @@ public class GameActivity extends Activity {
 	}
 
 	// Welll, it quits. Maybe somewhat less errory would be nice though.
-	public void quit() {
+	void quit() {
 		mSpeechRecognizerIntent = null;
 		mSpeechRecognizer.destroy();
 		mCharacterView = null;

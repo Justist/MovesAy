@@ -42,7 +42,7 @@ public class TileView extends View {
      * dimensions. X/Y Tile Counts are the number of tiles that will be drawn.
      */
 
-	 String TAG = "TileView";
+	 final String TAG = "TileView";
 
     private static int mTileSize;
 

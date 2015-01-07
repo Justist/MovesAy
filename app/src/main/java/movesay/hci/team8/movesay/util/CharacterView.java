@@ -43,11 +43,12 @@ public class CharacterView extends TileView {
      * lost. static final ints are used instead of an enum for performance
      * reasons.
      */
-    private int mMode = READY;
-    public static final int PAUSE = 0;
-    public static final int READY = 1;
-    private static final int RUNNING = 2;
-    private static final int OVER = 3;
+	private int mMode = READY;
+	public static final int PAUSE = 0;
+	public static final int READY = 1;
+	private static final int RUNNING = 2;
+	private static final int OVER = 3;
+	private static final int PREFERENCES = 4;
 
 	public static enum Sprites {
 		RED_STAR(1), GREEN_STAR(2), ARROW_UP(3), ARROW_DOWN(4), ARROW_LEFT(5), ARROW_RIGHT(6);
@@ -57,18 +58,10 @@ public class CharacterView extends TileView {
 	}
 
 	private int mDirection = Sprites.ARROW_UP.getValue();
-	/**
-     * mScore: used to track the number of apples captured mMoveDelay: number of
-     * milliseconds between Character movements. This will decrease as apples are
-     * captured.
-     */
-    private long mScore = 0;
-    private long mMoveDelay = 600;
-    /**
-     * mLastMove: tracks the absolute time when the Character last moved, and is used
-     * to determine if a move should be made based on mMoveDelay.
-     */
-    private long mLastMove;
+	private long mScore = 0;
+	private long mLastMove;
+
+	private boolean everInitialised = false;
     
     /**
      * mStatusText: text shows to the user in some run states
@@ -90,28 +83,9 @@ public class CharacterView extends TileView {
      */
     private static final Random RNG = new Random();
 
-    /**
-     * Create a simple handler that we can use to cause animation to happen.  We
-     * set ourselves as a target and we can use the sleep()
-     * function to cause an update/invalidate to occur at a later date.
-     */
-    private final RefreshHandler mRedrawHandler = new RefreshHandler();
+	private boolean walkAndSayNumber = true;
 
-    class RefreshHandler extends Handler {
-
-        @Override
-        public void handleMessage(Message msg) {
-            CharacterView.this.update();
-            CharacterView.this.invalidate();
-        }
-
-        public void sleep(long delayMillis) {
-        	this.removeMessages(0);
-            sendMessageDelayed(obtainMessage(0), delayMillis);
-        }
-    }
-
-    public CharacterView(Context context, AttributeSet attrs) {
+	public CharacterView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initCharacterView();
    }
@@ -132,28 +106,34 @@ public class CharacterView extends TileView {
 		loadTile(Sprites.ARROW_LEFT, R.drawable.arrowleft);
 		loadTile(Sprites.ARROW_RIGHT, R.drawable.arrowright);
 	}
-    
 
-    private void initNewGame() {
-       mGoalList.clear();
-		 stepsToWalk = 0;
+	private RefreshHandler mRedrawHandler = new RefreshHandler();
 
-        
-        character = new Coordinate(15, 15);
-        mDirection = Sprites.ARROW_UP.getValue();
-		 Log.d("initNewGame", String.valueOf(mDirection));
-		  setTile(mDirection, character.x, character.y);
+	class RefreshHandler extends Handler {
 
-        addRandomGoal();
-        addRandomGoal();
+		@Override
+		public void handleMessage(Message msg) {
+			CharacterView.this.update();
+			CharacterView.this.invalidate();
+		}
 
-        mMoveDelay = 1200;
-        mScore = 0;
-    }
+		public void sleep(long delayMillis) {
+			this.removeMessages(0);
+			sendMessageDelayed(obtainMessage(0), delayMillis);
+		}
+	}
 
-	public boolean setWalkAndSayNumber(boolean bool) {
-		boolean walkAndSayNumber = bool;
-		return bool;
+	private void initNewGame() {
+		mGoalList.clear();
+		stepsToWalk = 0;
+		character = new Coordinate(15, 15);
+		mDirection = Sprites.ARROW_UP.getValue();
+		Log.d("initNewGame", String.valueOf(mDirection));
+		setTile(mDirection, character.x, character.y);
+		addRandomGoal();
+		addRandomGoal();
+		mScore = 0;
+		everInitialised = true;
 	}
 
     private int[] coordArrayListToArray(ArrayList<Coordinate> cvec) {
@@ -172,7 +152,6 @@ public class CharacterView extends TileView {
 
         map.putIntArray("mGoalList", coordArrayListToArray(mGoalList));
         map.putInt("mDirection", mDirection);
-        map.putLong("mMoveDelay", mMoveDelay);
         map.putLong("mScore", mScore);
         map.putInt("characterX", character.x);
 		  map.putInt("characterY", character.y);
@@ -201,49 +180,67 @@ public class CharacterView extends TileView {
 
         mGoalList = coordArrayToArrayList(icicle.getIntArray("mGoalList"));
         mDirection = icicle.getInt("mDirection");
-        mMoveDelay = icicle.getLong("mMoveDelay");
         mScore = icicle.getLong("mScore");
         character.x = icicle.getInt("characterX");
 		  character.y = icicle.getInt("characterY");
     }
 
+	public boolean getControlChoice() {
+		return walkAndSayNumber;
+	}
+
 	public boolean recognizeDirection(String command) {
+		boolean directionGiven = false;
 		if(command.isEmpty()) {return false;}
 		if(command.equals("up")) {
 			mDirection = Sprites.ARROW_UP.getValue();
 			setTile(mDirection, character.x, character.y);
+			directionGiven = true;
 		} else if(command.equals("down")) {
 			mDirection = Sprites.ARROW_DOWN.getValue();
 			setTile(mDirection, character.x, character.y);
+			directionGiven = true;
 		} else if(command.equals("right")) {
 			mDirection = Sprites.ARROW_RIGHT.getValue();
 			setTile(mDirection, character.x, character.y);
+			directionGiven = true;
 		} else if(command.equals("left")) {
 			mDirection = Sprites.ARROW_LEFT.getValue();
 			setTile(mDirection, character.x, character.y);
+			directionGiven = true;
 		} else if(command.equals("start")) {
-			if (mMode == READY | mMode == OVER) {
+			if(mMode == READY | mMode == OVER) {
 				initNewGame();
 				setMode(RUNNING);
-				update();
-			}else if (mMode == PAUSE) {
-				setMode(RUNNING);
-				update();
+			} else if(mMode == PAUSE | mMode == PREFERENCES) {
+				if(everInitialised) {setMode(RUNNING);}
+				else {setMode(READY);}
 			}
 		} else if(command.equals("pause")) {
 			if(mMode == RUNNING) setMode(PAUSE);
-		} else if(String.valueOf(command.charAt(0)).equals("N")) {
-			try {stepsToWalk = Integer.parseInt(command.substring(1, command.length()));} catch(NumberFormatException n) {
-				Log.d(TAG, String.valueOf(n));
-				return false;
-			}
 		} else if(command.equals("quit")) {
 			quitView();
 		} else if(command.equals("preferences")) {
-
+			setMode(PREFERENCES);
+		} else if(mMode == PREFERENCES & command.equals("change")) {
+			walkAndSayNumber = !walkAndSayNumber;
 		} else {
 			return false;
 		}
+		Log.d("walk", Boolean.toString(walkAndSayNumber));
+		if(walkAndSayNumber) {
+			if(String.valueOf(command.charAt(0)).equals("N")) {
+				try {stepsToWalk = Integer.parseInt(command.substring(1, command.length()));}
+				catch(NumberFormatException n) {
+					Log.d(TAG, String.valueOf(n));
+					return false;
+				}
+			}
+		} else {
+			if(directionGiven) {stepsToWalk = 1;}
+		}
+		update();
+		while(stepsToWalk > 0) {update();}
 		return true;
 	}
 
@@ -263,7 +260,8 @@ public class CharacterView extends TileView {
         int oldMode = mMode;
         mMode = newMode;
 
-        if (newMode == RUNNING & oldMode != RUNNING) {
+        if(newMode == RUNNING & oldMode != RUNNING) {
+			  Log.d("old and new", Integer.toString(oldMode) + Integer.toString(newMode));
             mStatusText.setVisibility(View.INVISIBLE);
             update();
             return;
@@ -271,15 +269,19 @@ public class CharacterView extends TileView {
 
         Resources res = getContext().getResources();
         CharSequence str = "";
-        if (newMode == PAUSE) {
+        if(newMode == PAUSE) {
             str = res.getString(R.string.mode_pause_pre) + mScore + res.getString(R.string.mode_pause_suf);
-        }
-        if (newMode == READY) {
+        } else if(newMode == READY) {
             str = res.getString(R.string.mode_ready);
-        }
-        if (newMode == OVER) {
+        } else if(newMode == OVER) {
             str = res.getString(R.string.mode_over_pre) + mScore + res.getString(R.string.mode_over_suf);
-        }
+        } else if(newMode == PREFERENCES) {
+			  walkAndSayNumber = true;
+			  str = res.getString(R.string.preferencespre) +
+					  ((walkAndSayNumber) ?
+						res.getString(R.string.walkAndSayNumber) : res.getString(R.string.sayDirectionToWalk)) +
+					  res.getString(R.string.preferencessuf);
+		  }
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
@@ -323,20 +325,20 @@ public class CharacterView extends TileView {
      * Handles the basic update loop, checking to see if we are in the running
      * state, determining if a move should be made, updating the Character's location.
      */
-	 void update() {
-        if (mMode == RUNNING) {
-            long now = System.currentTimeMillis();
-
-            if (now - mLastMove > mMoveDelay) {
-                clearTiles();
-                updateWalls();
-                updateCharacter();
-                updateApples();
-                mLastMove = now;
-            }
-            mRedrawHandler.sleep(mMoveDelay);
-        }
-    }
+	void update() {
+		if (mMode == RUNNING) {
+			long now = System.currentTimeMillis();
+			long mMoveDelay = 600;
+			if(now - mLastMove > mMoveDelay) {
+				clearTiles();
+				updateWalls();
+				updateCharacter();
+				updateGoals();
+				mLastMove = now;
+			}
+			mRedrawHandler.sleep(mMoveDelay);
+		}
+	}
 
     /**
      * Draws some walls.
@@ -354,11 +356,10 @@ public class CharacterView extends TileView {
     }
 
     /**
-     * Draws some apples.
+     * Draws some goals.
      * 
      */
-    private void updateApples() {
-		 //Log.d("Applelist", mGoalList.toString());
+    private void updateGoals() {
         for (Coordinate c : mGoalList) {
             setTile(Sprites.RED_STAR.getValue(), c.x, c.y);
         }
@@ -407,14 +408,13 @@ public class CharacterView extends TileView {
                 addRandomGoal();
                 
                 mScore++;
-                mMoveDelay *= 0.9;
             }
         }
 
 		 setTile(mDirection, character.x, character.y);
     }
 
-    /**
+	/**
      * Simple class containing two integer values and a comparison function.
      * There's probably something I should use instead, but this was quick and
      * easy to build.

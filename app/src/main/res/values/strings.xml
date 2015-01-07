@@ -13,5 +13,10 @@
     <string name="controlChoice2">Say direction</string>
 
     <string name="snake_layout_text_text"/>
+    <string name="controlChoiceSummary">Select the type of controls you want to use:</string>
+    <string name="preferencespre">Your current choice of controls is:</string>
+    <string name="walkAndSayNumber">Say \'Walk\' and then a number</string>
+    <string name="sayDirectionToWalk">Say a direction to set 1 step</string>
+    <string name="preferencessuf">\\nTo change, say: Change.\\nTo return to the game, say: Start.</string>
 
 </resources>

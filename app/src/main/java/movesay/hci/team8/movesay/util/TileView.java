@@ -72,7 +72,7 @@ public class TileView extends View {
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TileView);
 
-        mTileSize = a.getInt(R.styleable.TileView_tileSize, 24);
+        mTileSize = 36; //a.getInt(R.styleable.TileView_tileSize, 24);
         
         a.recycle();
     }
@@ -82,7 +82,7 @@ public class TileView extends View {
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TileView);
 
-        mTileSize = a.getInt(R.styleable.TileView_tileSize, 24);
+        mTileSize = 36; // a.getInt(R.styleable.TileView_tileSize, 24);
         
         a.recycle();
     }

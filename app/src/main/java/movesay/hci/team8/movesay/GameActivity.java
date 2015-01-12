@@ -94,6 +94,7 @@ public class GameActivity extends Activity {
 
 	class SpeechRecognitionListener implements RecognitionListener {
 		private boolean lastCommandWasWalk = false;
+		private boolean walkNumber = true;
 
 		@Override
 		public void onReadyForSpeech(Bundle params) {}
@@ -112,7 +113,7 @@ public class GameActivity extends Activity {
 
 		@Override
 		public void onError(int error) {
-			Log.d("GameActivity", "Error!");
+			//Log.d("GameActivity", "Error!");
 			mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
 		}
 
@@ -125,22 +126,34 @@ public class GameActivity extends Activity {
 		private boolean recognizeSpeech(String original) {
 			Log.d("GameActivity", original);
 			String result = "";
+			String firstLetter = String.valueOf(original.charAt(0));
+			String secondLetter = String.valueOf(original.charAt(1));
 			if(lastCommandWasWalk) {
 				result = "N" + original;
 				if(mCharacterView.recognizeDirection(result)) {lastCommandWasWalk = false;}
 			} else {
-				String firstLetter = String.valueOf(original.charAt(0));
 				if(firstLetter.equals("u")) {result = "up";}
 				else if(firstLetter.equals("d")) {result = "down";}
 				else if(firstLetter.equals("t")) {result = "down";}
-				else if(firstLetter.equals("r")) {result = "right";}
+				else if(firstLetter.equals("r")) {
+					if(secondLetter.equals("e")) {result = "preferences";}
+					else {result = "right";}
+				}
 				else if(firstLetter.equals("l")) {result = "left";}
 				else if(firstLetter.equals("s")) {result = "start";}
-				else if(firstLetter.equals("p")) {result = "pause";}
+				else if(firstLetter.equals("p")) {
+					if(secondLetter.equals("r")) {result = "preferences";}
+					else {result = "pause";}
+				}
 				else if(firstLetter.equals("b")) {result = "pause";}
-				else if(firstLetter.equals("w")) {
+				else if(firstLetter.equals("w") && mCharacterView.getWalkNumber()) {
 					result = "walk";
 					lastCommandWasWalk = true;
+				}
+				else if(firstLetter.equals("c") & mCharacterView.isInPrefScreen()) {
+					result = "change";
+					walkNumber = !walkNumber;
+					mCharacterView.setControl(walkNumber);
 				}
 				else if(firstLetter.equals("q")) {result = "quit";}
 				mCharacterView.recognizeDirection(result);

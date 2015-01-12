@@ -48,6 +48,7 @@ public class CharacterView extends TileView {
     public static final int READY = 1;
     private static final int RUNNING = 2;
     private static final int OVER = 3;
+	private static final int PREFERENCES = 4;
 
 	public static enum Sprites {
 		RED_STAR(1), GREEN_STAR(2), ARROW_UP(3), ARROW_DOWN(4), ARROW_LEFT(5), ARROW_RIGHT(6);
@@ -76,6 +77,9 @@ public class CharacterView extends TileView {
     private TextView mStatusText;
 
 	private int stepsToWalk;
+
+	private boolean walkNumber = true;
+	private boolean inPrefScreen = false;
 
     /**
      * mCharacterTrail: a list of Coordinates that make up the Character's body
@@ -120,6 +124,14 @@ public class CharacterView extends TileView {
     	super(context, attrs, defStyle);
     	initCharacterView();
     }
+
+	public void setControl(boolean WalkNumber) {
+		walkNumber = WalkNumber;
+	}
+
+	public boolean getWalkNumber() {
+		return walkNumber;
+	}
 
 	private void initCharacterView() {
 		setFocusable(true);
@@ -208,21 +220,31 @@ public class CharacterView extends TileView {
 		if(command.equals("up")) {
 			mDirection = Sprites.ARROW_UP.getValue();
 			setTile(mDirection, character.x, character.y);
+			stepsToWalk = (!walkNumber) ? 1 : 0;
 		} else if(command.equals("down")) {
 			mDirection = Sprites.ARROW_DOWN.getValue();
 			setTile(mDirection, character.x, character.y);
+			stepsToWalk = (!walkNumber) ? 1 : 0;
 		} else if(command.equals("right")) {
 			mDirection = Sprites.ARROW_RIGHT.getValue();
 			setTile(mDirection, character.x, character.y);
+			stepsToWalk = (!walkNumber) ? 1 : 0;
 		} else if(command.equals("left")) {
 			mDirection = Sprites.ARROW_LEFT.getValue();
 			setTile(mDirection, character.x, character.y);
+			stepsToWalk = (!walkNumber) ? 1 : 0;
+		} else if(command.equals("preferences")) {
+			setMode(PREFERENCES);
+			update();
+		} else if(command.equals("change")) {
+			setMode(RUNNING);
+			update();
 		} else if(command.equals("start")) {
 			if (mMode == READY | mMode == OVER) {
 				initNewGame();
 				setMode(RUNNING);
 				update();
-			}else if (mMode == PAUSE) {
+			}else if (mMode == PAUSE | mMode == PREFERENCES) {
 				setMode(RUNNING);
 				update();
 			}
@@ -253,6 +275,10 @@ public class CharacterView extends TileView {
         mStatusText = newView;
     }
 
+	public boolean isInPrefScreen() {
+		return inPrefScreen;
+	}
+
     public void setMode(int newMode) {
         int oldMode = mMode;
         mMode = newMode;
@@ -261,19 +287,26 @@ public class CharacterView extends TileView {
             mStatusText.setVisibility(View.INVISIBLE);
             update();
             return;
-        }
+        } else if(newMode != PREFERENCES & oldMode == PREFERENCES) {
+			  inPrefScreen = false;
+		  }
 
         Resources res = getContext().getResources();
         CharSequence str = "";
         if (newMode == PAUSE) {
             str = res.getString(R.string.mode_pause_pre) + mScore + res.getString(R.string.mode_pause_suf);
-        }
-        if (newMode == READY) {
+        } else if (newMode == READY) {
             str = res.getString(R.string.mode_ready);
-        }
-        if (newMode == OVER) {
+        } else if (newMode == OVER) {
             str = res.getString(R.string.mode_over_pre) + mScore + res.getString(R.string.mode_over_suf);
-        }
+        } else if(newMode == PREFERENCES) {
+			  str = res.getString(R.string.mode_preferences_pre) +
+					  ((walkNumber) ?
+						res.getString(R.string.mode_preferences_walknumber) :
+						res.getString(R.string.mode_preferences_walkdirection)) +
+					  res.getString(R.string.mode_preferences_suf);
+			  inPrefScreen = true;
+		  }
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
@@ -325,7 +358,7 @@ public class CharacterView extends TileView {
                 clearTiles();
                 updateWalls();
                 updateCharacter();
-                updateApples();
+                updateGoals();
                 mLastMove = now;
             }
             mRedrawHandler.sleep(mMoveDelay);
@@ -348,10 +381,10 @@ public class CharacterView extends TileView {
     }
 
     /**
-     * Draws some apples.
+     * Draws some goals.
      * 
      */
-    private void updateApples() {
+    private void updateGoals() {
 		 //Log.d("Applelist", mGoalList.toString());
         for (Coordinate c : mGoalList) {
             setTile(Sprites.RED_STAR.getValue(), c.x, c.y);

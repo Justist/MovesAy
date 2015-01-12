@@ -10,5 +10,10 @@
     <string name="mode_over_suf">\nSay Start To Play</string>
 
     <string name="snake_layout_text_text"/>
+    <string name="mode_preferences_pre">Preferences\nYour current method of control is\n</string>
+    <string name="mode_preferences_walknumber">\"Walk and say a number\"\n</string>
+    <string name="mode_preferences_walkdirection">\"Say a direction to walk\"\n</string>
+    <string name="mode_preferences_suf">To change, say: \"Change!\"\nTo quit, say: \"Quit!\"\nTo resume the game, say:
+        \"Start!\"</string>
 
 </resources>
